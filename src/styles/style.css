@@ -1,0 +1,28 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: black;
+  overflow: hidden;
+}
+
+.canvas-scaler {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 512px;
+  height: 342px;
+  transform: translate(-50%, -50%) scale(1);
+  transform-origin: top left;
+  image-rendering: pixelated;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: white;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  -ms-interpolation-mode: nearest-neighbor;
+}
