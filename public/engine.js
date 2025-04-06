@@ -60,10 +60,50 @@ class ImageManager {
 
     raster.onLoad = () => {
       this.rasterObjects.push(raster);
+      this.dissolveInRaster(raster); // <- Trigger dissolve effect here
       console.log(`Loaded image at ${position}`);
     };
 
     return raster;
+  }
+
+  dissolveInRaster(raster, duration = 1000, batchSize = 25) {
+    const originalData = raster.getImageData();
+    const tempData = new ImageData(originalData.width, originalData.height);
+    const totalPixels = originalData.width * originalData.height;
+  
+    // Build list of pixel indices
+    const indices = Array.from({ length: totalPixels }, (_, i) => i);
+    
+    // Shuffle the indices
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+  
+    raster.setImageData(tempData); // Start fully transparent
+  
+    let revealed = 0;
+  
+    function revealBatch() {
+      for (let i = 0; i < batchSize && revealed < totalPixels; i++, revealed++) {
+        const index = indices[revealed];
+        const px = index * 4;
+  
+        tempData.data[px] = originalData.data[px];
+        tempData.data[px + 1] = originalData.data[px + 1];
+        tempData.data[px + 2] = originalData.data[px + 2];
+        tempData.data[px + 3] = originalData.data[px + 3];
+      }
+  
+      raster.setImageData(tempData);
+  
+      if (revealed < totalPixels) {
+        setTimeout(revealBatch, duration / (totalPixels / batchSize));
+      }
+    }
+  
+    revealBatch();
   }
 
   // Invert the colors of the raster
