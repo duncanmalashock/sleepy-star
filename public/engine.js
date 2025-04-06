@@ -1,174 +1,231 @@
-// Assuming you have Paper.js included and initialized in an HTML canvas
-// This is a basic 1-bit style 2D graphics engine using Paper.js
-
 paper.install(window);
+
 window.onload = function () {
   paper.setup('myCanvas');
 
   const canvas = document.getElementById('myCanvas');
   const ctx = canvas.getContext('2d');
 
+  // Disable smoothing for 1-bit style rendering
   ctx.imageSmoothingEnabled = false;
   ctx.webkitImageSmoothingEnabled = false;
   ctx.mozImageSmoothingEnabled = false;
   ctx.msImageSmoothingEnabled = false;
 
   const tool = new paper.Tool();
+  
+  // Instantiate ImageManager and SelectionManager
+  const imageManager = new ImageManager();
+  const selectionManager = new SelectionManager(imageManager);
+  
+  // Load images into the canvas (Example: Torch)
+  imageManager.loadImage('torch.gif', new Point(128, 128));
+  imageManager.loadImage('torch.gif', new Point(48, 128));
 
-  const rasterObjects = [];
-  let selectedObjects = new Set();
-  let selectionRect = null;
-  let selectionStart = null;
-  let dragging = false;
-  let dragOffsetMap = new Map();
+  // Set up the tool for mouse events
+  tool.onMouseDown = function (event) {
+    const hit = selectionManager.hitTest(event.point);
+    
+    if (hit) {
+      selectionManager.startDragging(hit, event);
+    } else {
+      selectionManager.startSelection(event);
+    }
+  };
 
-  function loadRaster(src, position) {
+  tool.onMouseDrag = function (event) {
+    if (selectionManager.isDragging()) {
+      selectionManager.dragSelectedObjects(event);
+    } else {
+      selectionManager.updateSelectionRect(event);
+    }
+  };
+
+  tool.onMouseUp = function () {
+    selectionManager.stopDragging();
+  };
+};
+
+// Image Management Class
+class ImageManager {
+  constructor() {
+    this.rasterObjects = [];
+  }
+
+  loadImage(src, position) {
     const raster = new Raster({
       source: src,
-      position: position,
+      position: position
     });
 
-    raster.onLoad = function () {
-      rasterObjects.push(raster);
+    raster.onLoad = () => {
+      this.rasterObjects.push(raster);
+      console.log(`Loaded image at ${position}`);
     };
 
     return raster;
   }
 
-  function isPointOnOpaquePixel(raster, point) {
-    const local = point.subtract(raster.position).add(raster.size.multiply(0.5));
-    const pixel = raster.getPixel(local);
-    return pixel && pixel.alpha > 0.5;
-  }
-
-  function clearSelection() {
-    selectedObjects.forEach(obj => {
-      if (obj._originalImage) {
-        obj.setImageData(obj._originalImage);
-      }
-    });
-    selectedObjects.clear();
-  }
-
-  function selectRaster(raster) {
-    // Don't re-invert if already selected
-    if (selectedObjects.has(raster)) return;
-  
+  // Invert the colors of the raster
+  invertRasterColors(raster) {
     if (!raster._originalImage) {
       raster._originalImage = raster.getImageData();
     } else {
       raster.setImageData(raster._originalImage);
     }
-  
+
     const imageData = raster.getImageData();
     for (let i = 0; i < imageData.data.length; i += 4) {
-      imageData.data[i] = 255 - imageData.data[i];     // R
-      imageData.data[i + 1] = 255 - imageData.data[i + 1]; // G
-      imageData.data[i + 2] = 255 - imageData.data[i + 2]; // B
+      imageData.data[i] = 255 - imageData.data[i];       // Red
+      imageData.data[i + 1] = 255 - imageData.data[i + 1]; // Green
+      imageData.data[i + 2] = 255 - imageData.data[i + 2]; // Blue
     }
-  
+
     raster.setImageData(imageData);
-    selectedObjects.add(raster);
+    console.log(`Inverted colors for raster at ${raster.position}`);
+  }
+}
+
+// Selection and Dragging Class
+class SelectionManager {
+  constructor(imageManager) {
+    this.selectedObjects = new Set();
+    this.dragging = false;
+    this.selectionRect = null;
+    this.selectionStart = null;
+    this.dragOffsetMap = new Map();
+    this.imageManager = imageManager;
   }
 
-  function hitTest(point) {
-    for (let i = rasterObjects.length - 1; i >= 0; i--) {
-      const raster = rasterObjects[i];
-      if (isPointOnOpaquePixel(raster, point)) {
+  // Start dragging selected objects
+  startDragging(raster, event) {
+    if (!this.selectedObjects.has(raster)) {
+      this.clearSelection();
+      this.selectRaster(raster);
+    }
+
+    this.dragging = true;
+    this.dragOffsetMap.clear();
+
+    this.selectedObjects.forEach(obj => {
+      obj.bringToFront();
+      const index = this.imageManager.rasterObjects.indexOf(obj);
+      if (index !== -1) {
+        this.imageManager.rasterObjects.splice(index, 1);
+        this.imageManager.rasterObjects.push(obj);
+      }
+      this.dragOffsetMap.set(obj, event.point.subtract(obj.position));
+    });
+  }
+
+  // Drag the selected objects
+  dragSelectedObjects(event) {
+    this.selectedObjects.forEach(obj => {
+      const offset = this.dragOffsetMap.get(obj);
+      obj.position = event.point.subtract(offset);
+    });
+  }
+
+  // Start a selection rectangle
+  startSelection(event) {
+    this.clearSelection();
+    this.selectionStart = event.point;
+    if (this.selectionRect) {
+      this.selectionRect.remove();
+    }
+    this.selectionRect = new Path.Rectangle({
+      from: this.selectionStart,
+      to: this.selectionStart,
+      strokeColor: 'black',
+      dashArray: [1, 1]
+    });
+  }
+
+  // Update the selection rectangle while dragging
+  updateSelectionRect(event) {
+    if (this.selectionRect) {
+      this.selectionRect.remove();
+      this.selectionRect = new Path.Rectangle({
+        from: this.selectionStart,
+        to: event.point,
+        strokeColor: 'black',
+        dashArray: [1, 1]
+      });
+      this.getBoundsSelection(this.selectionRect.bounds);
+    }
+  }
+
+  // Get the bounds of the selection and select the objects within it
+  getBoundsSelection(rect) {
+    this.clearSelection();
+
+    for (const raster of this.imageManager.rasterObjects) {
+      const step = 4; // efficiency step: checking every 4 pixels
+      const bounds = raster.bounds.intersect(rect);
+
+      if (bounds.isEmpty()) continue;
+
+      for (let x = bounds.left; x < bounds.right; x += step) {
+        for (let y = bounds.top; y < bounds.bottom; y += step) {
+          const point = new Point(x, y);
+          if (this.isPointOnOpaquePixel(raster, point)) {
+            this.selectRaster(raster);
+            break;
+          }
+        }
+        if (this.selectedObjects.has(raster)) break;
+      }
+    }
+  }
+
+  // Check if a point is on an opaque pixel of the raster
+  isPointOnOpaquePixel(raster, point) {
+    const local = point.subtract(raster.position).add(raster.size.multiply(0.5));
+    const pixel = raster.getPixel(local);
+    return pixel && pixel.alpha > 0.5;
+  }
+
+  // Select a raster object
+  selectRaster(raster) {
+    if (this.selectedObjects.has(raster)) return;
+
+    this.imageManager.invertRasterColors(raster);
+    this.selectedObjects.add(raster);
+  }
+
+  // Clear the current selection
+  clearSelection() {
+    this.selectedObjects.forEach(obj => {
+      if (obj._originalImage) {
+        obj.setImageData(obj._originalImage);
+      }
+    });
+    this.selectedObjects.clear();
+    console.log('Selection cleared');
+  }
+
+  // Hit test for selecting an object on mouse down
+  hitTest(point) {
+    for (let i = this.imageManager.rasterObjects.length - 1; i >= 0; i--) {
+      const raster = this.imageManager.rasterObjects[i];
+      if (this.isPointOnOpaquePixel(raster, point)) {
         return raster;
       }
     }
     return null;
   }
 
-  function getBoundsSelection(rect) {
-    clearSelection();
-  
-    for (const raster of rasterObjects) {
-      const step = 4; // check every 4 pixels for efficiency
-      const bounds = raster.bounds.intersect(rect);
-  
-      if (bounds.isEmpty()) continue;
-  
-      for (let x = bounds.left; x < bounds.right; x += step) {
-        for (let y = bounds.top; y < bounds.bottom; y += step) {
-          const point = new Point(x, y);
-          if (isPointOnOpaquePixel(raster, point)) {
-            selectRaster(raster);
-            break;
-          }
-        }
-        if (selectedObjects.has(raster)) break;
-      }
+  // Stop dragging
+  stopDragging() {
+    this.dragging = false;
+    if (this.selectionRect) {
+      this.selectionRect.remove();
+      this.selectionRect = null;
     }
   }
 
-  tool.onMouseDown = function (event) {
-    const hit = hitTest(event.point);
-    if (hit) {
-      if (!selectedObjects.has(hit)) {
-        clearSelection();
-        selectRaster(hit);
-      }
-  
-      dragging = true;
-      dragOffsetMap.clear();
-  
-      // Bring selected objects to front
-      selectedObjects.forEach(obj => {
-        obj.bringToFront();
-  
-        // Remove and push to the end of rasterObjects to reflect topmost layer
-        const index = rasterObjects.indexOf(obj);
-        if (index !== -1) {
-          rasterObjects.splice(index, 1);
-          rasterObjects.push(obj);
-        }
-  
-        dragOffsetMap.set(obj, event.point.subtract(obj.position));
-      });
-    } else {
-      clearSelection();
-  
-      selectionStart = event.point;
-      if (selectionRect) selectionRect.remove();
-      selectionRect = new Path.Rectangle({
-        from: selectionStart,
-        to: selectionStart,
-        strokeColor: 'black',
-        dashArray: [1, 1]
-      });
-    }
-  };
-  
-
-  tool.onMouseDrag = function (event) {
-    if (dragging) {
-      selectedObjects.forEach(obj => {
-        const offset = dragOffsetMap.get(obj);
-        obj.position = event.point.subtract(offset);
-      });
-    } else if (selectionRect) {
-      selectionRect.remove();
-      selectionRect = new Path.Rectangle({
-        from: selectionStart,
-        to: event.point,
-        strokeColor: 'black',
-        dashArray: [1, 1]
-      });
-      getBoundsSelection(selectionRect.bounds);
-    }
-  };
-
-  tool.onMouseUp = function () {
-    dragging = false;
-    if (selectionRect) {
-      selectionRect.remove();
-      selectionRect = null;
-    }
-  };
-
-  // Example: load a 1-bit style GIF object
-  loadRaster('torch.gif', new Point(128, 128));
-  loadRaster('torch.gif', new Point(48, 128));
-};
+  // Check if dragging is active
+  isDragging() {
+    return this.dragging;
+  }
+}
