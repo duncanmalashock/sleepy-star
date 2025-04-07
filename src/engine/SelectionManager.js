@@ -14,8 +14,7 @@ export class SelectionManager {
 
   isInsideSelectableWindow(point) {
     return (
-      this.windowManager.isPointInWindow(point, "inventory") ||
-      this.windowManager.isPointInWindow(point, "Entrance")
+      this.windowManager.isPointInWindow(point, "Inventory")
     );
   }
 

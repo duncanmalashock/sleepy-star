@@ -15,7 +15,7 @@ export class ImageManager {
     raster.onLoad = () => {
       this.rasterObjects.push(raster);
       // this.dissolveInRaster(raster); // <- Trigger dissolve effect here
-      console.log(`Loaded image at ${position}`);
+      // console.log(`Loaded image at ${position}`);
     };
 
     return raster;

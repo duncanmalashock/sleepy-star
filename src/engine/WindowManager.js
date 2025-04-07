@@ -51,7 +51,7 @@ export class WindowManager {
   }
 
   createInventoryWindow(gameObjectManager) {
-    const contents = this.createWindow("inventory", new Point(2, 24), { width: 120, height: 230 }, true, true);
+    const contents = this.createWindow("Inventory", new Point(2, 24), { width: 120, height: 230 }, true, true);
     gameObjectManager.renderInventoryObjects(contents);
     return contents;
   }
@@ -60,7 +60,7 @@ export class WindowManager {
     const contents = this.createWindow("", new Point(128, 24), { width: 256, height: 40 });
     const buttons = ["Examine", "Open", "Close", "Speak", "Operate", "Go", "Hit", "Consume"];
     buttons.forEach((label, i) => {
-      const btn = new Path.Rectangle(new Point(60 + i * 45, 245), [40, 30]);
+      const btn = new Path.Rectangle(new Point(129 + i * 64, 42), [50, 20]);
       btn.fillColor = globals.white;
       const txt = new PointText({ point: btn.position.add([-15, 5]), content: label, fillColor: globals.black, fontFamily: 'Chicago', fontSize: 16 });
       contents.addChildren([btn, txt]);
