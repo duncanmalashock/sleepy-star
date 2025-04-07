@@ -5,8 +5,13 @@ import { SelectionManager } from './SelectionManager.js';
 import { InteractionManager } from './InteractionManager.js';
 import { GameObjectManager } from './GameObjectManager.js';
 
-
 window.addEventListener('DOMContentLoaded', () => {
+  document.fonts.load('12px "Chicago"').then(() => {
+    initializeGame();
+  });
+});
+
+function initializeGame() {
   const canvas = document.getElementById('myCanvas');
 
   if (!canvas) {
@@ -57,4 +62,4 @@ window.addEventListener('DOMContentLoaded', () => {
     windowManager.handleMouseUp(event);
     selectionManager.stopDragging();
   };
-});
+}
