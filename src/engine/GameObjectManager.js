@@ -26,11 +26,4 @@ export class GameObjectManager {
       parentGroup.addChild(raster);
     });
   }
-
-  renderSelf(parentGroup) {
-    const obj = this.self;
-    const raster = this.imageManager.loadImage(obj.src, parentGroup.position.add(obj.position));
-    raster.data = obj;
-    parentGroup.addChild(raster);
-  }
 }

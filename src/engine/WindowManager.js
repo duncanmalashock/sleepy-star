@@ -78,7 +78,6 @@ export class WindowManager {
 
   createSelfWindow(gameObjectManager) {
     const contents = this.createWindow("Self", new Point(404, 24), { width: 80, height: 42 });
-    gameObjectManager.renderSelf(contents);
     return contents;
   }
 
