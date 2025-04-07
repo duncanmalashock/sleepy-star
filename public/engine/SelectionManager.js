@@ -1,5 +1,7 @@
-import { Point, Path, Group, Tool, Raster, PointText } from 'paper';
-import { globals } from './globals';
+const globals = {
+  white: '#FFF',
+  black: '#000'
+}
 
 export class SelectionManager {
   constructor(imageManager, windowManager) {
@@ -14,7 +16,8 @@ export class SelectionManager {
 
   isInsideSelectableWindow(point) {
     return (
-      this.windowManager.isPointInWindow(point, "Inventory")
+      this.windowManager.isPointInWindow(point, "Inventory") ||
+      this.windowManager.isPointInWindow(point, "Entrance") 
     );
   }
 
@@ -51,7 +54,7 @@ export class SelectionManager {
     if (this.selectionRect) {
       this.selectionRect.remove();
     }
-    this.selectionRect = new Path.Rectangle({
+    this.selectionRect = new paper.Path.Rectangle({
       from: this.selectionStart,
       to: this.selectionStart,
       strokeColor: globals.black,
@@ -62,7 +65,7 @@ export class SelectionManager {
   updateSelectionRect(event) {
     if (this.selectionRect) {
       this.selectionRect.remove();
-      this.selectionRect = new Path.Rectangle({
+      this.selectionRect = new paper.Path.Rectangle({
         from: this.selectionStart,
         to: event.point,
         strokeColor: globals.black,

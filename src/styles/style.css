@@ -1,6 +1,6 @@
 @font-face {
   font-family: 'Chicago';
-  src: url('fonts/chicago-12.ttf') format('truetype');
+  src: url('/fonts/chicago-12.ttf') format('truetype');
 }
 
 html, body {
@@ -29,7 +29,7 @@ canvas {
   width: 100%;
   height: 100%;
   display: block;
-  background: url('./bg.gif');
+  background: url('/bg.gif');
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   -ms-interpolation-mode: nearest-neighbor;

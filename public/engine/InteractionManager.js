@@ -1,5 +1,4 @@
-import { Point, Path, Group, Tool, Raster, PointText } from 'paper';
-import { globals } from './globals';
+
 
 export class InteractionManager {
   constructor() {
