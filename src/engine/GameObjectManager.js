@@ -1,3 +1,5 @@
+import { Point, Path, Group, Tool, Raster, PointText } from './paper-env';
+
 export class GameObjectManager {
   constructor(imageManager) {
     this.imageManager = imageManager;

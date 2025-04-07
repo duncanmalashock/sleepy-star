@@ -1,4 +1,11 @@
-<script type="module">
-  import { execute } from '../engine/main.js';
-  execute();
+---
+
+---
+<div class="canvas-scaler">
+  <canvas id="myCanvas" width="512" height="342"></canvas>
+</div>
+
+<!-- Only run in browser -->
+<script type="module" is:inline>
+  import '/src/engine/main.js';
 </script>

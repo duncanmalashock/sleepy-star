@@ -1,14 +1,20 @@
+import paper, { setup } from './paper-env.js';
 import { WindowManager } from './WindowManager.js';
 import { ImageManager } from './ImageManager.js';
 import { SelectionManager } from './SelectionManager.js';
 import { InteractionManager } from './InteractionManager.js';
 import { GameObjectManager } from './GameObjectManager.js';
 
-// Ensure Paper.js is loaded before using it
-if (typeof paper !== 'undefined') {
-  paper.setup('myCanvas');
 
+window.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('myCanvas');
+
+  if (!canvas) {
+    console.error('Canvas element not found!');
+    return;
+  }
+  setup(canvas);
+
   const ctx = canvas.getContext('2d');
 
   ctx.imageSmoothingEnabled = false;
@@ -51,7 +57,4 @@ if (typeof paper !== 'undefined') {
     windowManager.handleMouseUp(event);
     selectionManager.stopDragging();
   };
-} else {
-  console.error('Paper.js is not loaded');
-}
-
+});

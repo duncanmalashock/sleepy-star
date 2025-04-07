@@ -1,4 +1,4 @@
-
+import { Point, Path, Group, Tool, Raster, PointText } from './paper-env';
 
 export class InteractionManager {
   constructor() {

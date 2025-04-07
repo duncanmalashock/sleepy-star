@@ -1,3 +1,5 @@
+import { Point, Path, Group, Tool, Raster, PointText } from './paper-env';
+
 const colors = {
   white: '#FFF',
   black: '#000'
