@@ -1,57 +1,7 @@
-import paper from 'paper';
-import { Point, Path, Group, Tool, Raster, PointText } from 'paper';
+import paper, { Point, Path, Group, Tool, Raster, PointText } from 'paper';
 
 const white = "#FFF";
 const black = "#000";
-
-window.onload = function () {
-  paper.setup('myCanvas');
-
-  const canvas = document.getElementById('myCanvas');
-  const ctx = canvas.getContext('2d');
-
-  ctx.imageSmoothingEnabled = false;
-  ctx.webkitImageSmoothingEnabled = false;
-  ctx.mozImageSmoothingEnabled = false;
-  ctx.msImageSmoothingEnabled = false;
-
-  const tool = new Tool();
-
-  const windowManager = new WindowManager();
-  const imageManager = new ImageManager();
-  const selectionManager = new SelectionManager(imageManager, windowManager);
-  const interactionManager = new InteractionManager();
-  const gameObjectManager = new GameObjectManager(imageManager);
-
-  // Create windows
-  windowManager.createRoomWindow('Entrance', gameObjectManager);
-  windowManager.createInventoryWindow(gameObjectManager);
-  windowManager.createCommandBar();
-  windowManager.createNarrationWindow();
-  windowManager.createExitsWindow();
-  windowManager.createSelfWindow(gameObjectManager);
-
-  tool.onMouseDown = function (event) {
-    if (windowManager.handleMouseDown(event)) return;
-    if (selectionManager.isInsideSelectableWindow(event.point)) {
-      const hit = selectionManager.hitTest(event.point);
-      if (hit) selectionManager.startDragging(hit, event);
-      else selectionManager.startSelection(event);
-    }
-  };
-
-  tool.onMouseDrag = function (event) {
-    if (windowManager.handleMouseDrag(event)) return;
-    if (selectionManager.isDragging()) selectionManager.dragSelectedObjects(event);
-    else if (selectionManager.isInsideSelectableWindow(event.point)) selectionManager.updateSelectionRect(event);
-  };
-
-  tool.onMouseUp = function (event) {
-    windowManager.handleMouseUp(event);
-    selectionManager.stopDragging();
-  };
-}
-
 
 class WindowManager {
   constructor() {
@@ -397,3 +347,52 @@ class ImageManager {
     console.log(`Inverted colors for raster at ${raster.position}`);
   }
 }
+
+paper.setup('myCanvas');
+
+const canvas = document.getElementById('myCanvas');
+const ctx = canvas.getContext('2d');
+
+ctx.imageSmoothingEnabled = false;
+ctx.webkitImageSmoothingEnabled = false;
+ctx.mozImageSmoothingEnabled = false;
+ctx.msImageSmoothingEnabled = false;
+
+const tool = new Tool();
+
+const windowManager = new WindowManager();
+const imageManager = new ImageManager();
+const selectionManager = new SelectionManager(imageManager, windowManager);
+const interactionManager = new InteractionManager();
+const gameObjectManager = new GameObjectManager(imageManager);
+
+// Create windows
+windowManager.createRoomWindow('Entrance', gameObjectManager);
+windowManager.createInventoryWindow(gameObjectManager);
+windowManager.createCommandBar();
+windowManager.createNarrationWindow();
+windowManager.createExitsWindow();
+windowManager.createSelfWindow(gameObjectManager);
+
+tool.onMouseDown = function (event) {
+  if (windowManager.handleMouseDown(event)) return;
+  if (selectionManager.isInsideSelectableWindow(event.point)) {
+    const hit = selectionManager.hitTest(event.point);
+    if (hit) selectionManager.startDragging(hit, event);
+    else selectionManager.startSelection(event);
+  }
+};
+
+tool.onMouseDrag = function (event) {
+  if (windowManager.handleMouseDrag(event)) return;
+  if (selectionManager.isDragging()) selectionManager.dragSelectedObjects(event);
+  else if (selectionManager.isInsideSelectableWindow(event.point)) selectionManager.updateSelectionRect(event);
+};
+
+tool.onMouseUp = function (event) {
+  windowManager.handleMouseUp(event);
+  selectionManager.stopDragging();
+};
+
+
+

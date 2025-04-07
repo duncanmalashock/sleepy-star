@@ -13,6 +13,8 @@ import '../styles/style.css';
     <div class="canvas-scaler">
       <canvas id="myCanvas" width="512" height="342"></canvas>
     </div>
-    <script type="module" src="/src/engine.js"></script>
+    <script type="module" is:inline>
+      import('/src/engine/main.js'); // Load your engine logic
+    </script>
   </body>
 </html>
