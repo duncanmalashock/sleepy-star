@@ -1,5 +1,4 @@
 import { Point, Path, Group, Tool, Raster, PointText } from 'paper';
-import { globals } from './globals';
 
 export class GameObjectManager {
   constructor(imageManager) {
@@ -10,7 +9,6 @@ export class GameObjectManager {
     this.inventoryObjects = [
       { name: 'Torch', src: 'torch.gif', position: new Point(-32, -48), movable: true },
     ];
-    this.self = { name: 'Self', src: 'self.png', position: new Point(50, 50), movable: false };
   }
 
   renderRoomObjects(parentGroup) {
