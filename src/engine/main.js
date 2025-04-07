@@ -1,4 +1,4 @@
-import paper, { setup } from './paper-env.js';
+import paper from 'paper';
 import { WindowManager } from './WindowManager.js';
 import { ImageManager } from './ImageManager.js';
 import { SelectionManager } from './SelectionManager.js';
@@ -13,7 +13,7 @@ window.addEventListener('DOMContentLoaded', () => {
     console.error('Canvas element not found!');
     return;
   }
-  setup(canvas);
+  paper.setup(canvas);
 
   const ctx = canvas.getContext('2d');
 
