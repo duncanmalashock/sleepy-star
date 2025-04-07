@@ -5,54 +5,55 @@ import { SelectionManager } from './SelectionManager.js';
 import { InteractionManager } from './InteractionManager.js';
 import { GameObjectManager } from './GameObjectManager.js';
 
-const white = "#FFF";
-const black = "#000";
+export const execute = () => {  
+  const white = "#FFF";
+  const black = "#000";
 
-paper.setup('myCanvas');
+  paper.setup('myCanvas');
 
-const canvas = document.getElementById('myCanvas');
-const ctx = canvas.getContext('2d');
+  const canvas = document.getElementById('myCanvas');
+  const ctx = canvas.getContext('2d');
 
-ctx.imageSmoothingEnabled = false;
-ctx.webkitImageSmoothingEnabled = false;
-ctx.mozImageSmoothingEnabled = false;
-ctx.msImageSmoothingEnabled = false;
+  ctx.imageSmoothingEnabled = false;
+  ctx.webkitImageSmoothingEnabled = false;
+  ctx.mozImageSmoothingEnabled = false;
+  ctx.msImageSmoothingEnabled = false;
 
-const tool = new paper.Tool();
+  const tool = new paper.Tool();
 
-const windowManager = new WindowManager();
-const imageManager = new ImageManager();
-const selectionManager = new SelectionManager(imageManager, windowManager);
-const interactionManager = new InteractionManager();
-const gameObjectManager = new GameObjectManager(imageManager);
+  const windowManager = new WindowManager();
+  const imageManager = new ImageManager();
+  const selectionManager = new SelectionManager(imageManager, windowManager);
+  const interactionManager = new InteractionManager();
+  const gameObjectManager = new GameObjectManager(imageManager);
 
-// Create windows
-windowManager.createRoomWindow('Entrance', gameObjectManager);
-windowManager.createInventoryWindow(gameObjectManager);
-windowManager.createCommandBar();
-windowManager.createNarrationWindow();
-windowManager.createExitsWindow();
-windowManager.createSelfWindow(gameObjectManager);
+  // Create windows
+  windowManager.createRoomWindow('Entrance', gameObjectManager);
+  windowManager.createInventoryWindow(gameObjectManager);
+  windowManager.createCommandBar();
+  windowManager.createNarrationWindow();
+  windowManager.createExitsWindow();
+  windowManager.createSelfWindow(gameObjectManager);
 
-tool.onMouseDown = function (event) {
-  if (windowManager.handleMouseDown(event)) return;
-  if (selectionManager.isInsideSelectableWindow(event.point)) {
-    const hit = selectionManager.hitTest(event.point);
-    if (hit) selectionManager.startDragging(hit, event);
-    else selectionManager.startSelection(event);
-  }
-};
+  tool.onMouseDown = function (event) {
+    if (windowManager.handleMouseDown(event)) return;
+    if (selectionManager.isInsideSelectableWindow(event.point)) {
+      const hit = selectionManager.hitTest(event.point);
+      if (hit) selectionManager.startDragging(hit, event);
+      else selectionManager.startSelection(event);
+    }
+  };
 
-tool.onMouseDrag = function (event) {
-  if (windowManager.handleMouseDrag(event)) return;
-  if (selectionManager.isDragging()) selectionManager.dragSelectedObjects(event);
-  else if (selectionManager.isInsideSelectableWindow(event.point)) selectionManager.updateSelectionRect(event);
-};
+  tool.onMouseDrag = function (event) {
+    if (windowManager.handleMouseDrag(event)) return;
+    if (selectionManager.isDragging()) selectionManager.dragSelectedObjects(event);
+    else if (selectionManager.isInsideSelectableWindow(event.point)) selectionManager.updateSelectionRect(event);
+  };
 
-tool.onMouseUp = function (event) {
-  windowManager.handleMouseUp(event);
-  selectionManager.stopDragging();
-};
+  tool.onMouseUp = function (event) {
+    windowManager.handleMouseUp(event);
+    selectionManager.stopDragging();
+  };
+}
 
-
-
+window.execute = execute;
