@@ -59,8 +59,9 @@ export class SelectionManager {
     this.selectionRect = new Path.Rectangle({
       from: this.selectionStart,
       to: this.selectionStart,
-      strokeColor: colors.black,
-      dashArray: [1, 1]
+      strokeColor: colors.white,
+      dashArray: [1, 1],
+      blendMode: 'difference'
     });
   }
 
@@ -70,8 +71,9 @@ export class SelectionManager {
       this.selectionRect = new Path.Rectangle({
         from: this.selectionStart,
         to: event.point,
-        strokeColor: colors.black,
-        dashArray: [1, 1]
+        strokeColor: colors.white,
+        dashArray: [1, 1],
+        blendMode: 'difference'
       });
     }
   }
