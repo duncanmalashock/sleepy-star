@@ -2,10 +2,10 @@ export class GameObjectManager {
   constructor(imageManager) {
     this.imageManager = imageManager;
     this.roomObjects = [
-      { name: 'Key', src: 'key.gif', position: new paper.Point(10, 10), movable: true }
+      { name: 'Key', src: 'key.gif', position: new Point(10, 10), movable: true }
     ];
     this.inventoryObjects = [
-      { name: 'Torch', src: 'torch.gif', position: new paper.Point(-32, -48), movable: true },
+      { name: 'Torch', src: 'torch.gif', position: new Point(-32, -48), movable: true },
     ];
   }
 

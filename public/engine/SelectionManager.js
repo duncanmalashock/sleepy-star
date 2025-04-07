@@ -1,4 +1,4 @@
-const globals = {
+const colors = {
   white: '#FFF',
   black: '#000'
 }
@@ -54,10 +54,10 @@ export class SelectionManager {
     if (this.selectionRect) {
       this.selectionRect.remove();
     }
-    this.selectionRect = new paper.Path.Rectangle({
+    this.selectionRect = new Path.Rectangle({
       from: this.selectionStart,
       to: this.selectionStart,
-      strokeColor: globals.black,
+      strokeColor: colors.black,
       dashArray: [1, 1]
     });
   }
@@ -65,10 +65,10 @@ export class SelectionManager {
   updateSelectionRect(event) {
     if (this.selectionRect) {
       this.selectionRect.remove();
-      this.selectionRect = new paper.Path.Rectangle({
+      this.selectionRect = new Path.Rectangle({
         from: this.selectionStart,
         to: event.point,
-        strokeColor: globals.black,
+        strokeColor: colors.black,
         dashArray: [1, 1]
       });
     }

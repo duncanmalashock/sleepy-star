@@ -1,4 +1,4 @@
-const globals = {
+const colors = {
   white: '#FFF',
   black: '#000'
 }
@@ -9,7 +9,7 @@ export class ImageManager {
   }
 
   loadImage(src, position) {
-    const raster = new paper.Raster({
+    const raster = new Raster({
       source: src,
       position: position
     });
@@ -25,7 +25,7 @@ export class ImageManager {
 
   dissolveInRaster(raster, duration = 0, batchSize = 100) {
     const originalData = raster.getImageData();
-    const tempData = new paper.ImageData(originalData.width, originalData.height);
+    const tempData = new ImageData(originalData.width, originalData.height);
     const totalPixels = originalData.width * originalData.height;
   
     // Build list of pixel indices
