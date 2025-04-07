@@ -1,5 +1,5 @@
-// Extends the original Paper.js setup with 6 draggable windows and a game architecture
-paper.install(window);
+import paper from 'paper';
+import { Point, Path, Group, Tool, Raster, PointText } from 'paper';
 
 const white = "#FFF";
 const black = "#000";
@@ -15,7 +15,7 @@ window.onload = function () {
   ctx.mozImageSmoothingEnabled = false;
   ctx.msImageSmoothingEnabled = false;
 
-  const tool = new paper.Tool();
+  const tool = new Tool();
 
   const windowManager = new WindowManager();
   const imageManager = new ImageManager();
