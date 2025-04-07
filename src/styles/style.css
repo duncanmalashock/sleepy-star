@@ -1,9 +1,17 @@
+@font-face {
+  font-family: 'Chicago';
+  src: url('fonts/chicago-12.ttf') format('truetype');
+}
+
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   background: black;
   overflow: hidden;
+  font-smooth: never;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .canvas-scaler {
@@ -21,7 +29,7 @@ canvas {
   width: 100%;
   height: 100%;
   display: block;
-  background: white;
+  background: url('./bg.gif');
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   -ms-interpolation-mode: nearest-neighbor;
