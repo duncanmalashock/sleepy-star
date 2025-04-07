@@ -5,9 +5,4 @@ import netlify from '@astrojs/netlify';
 
 export default defineConfig({
   adapter: netlify(),
-  vite: {
-    optimizeDeps: {
-      include: ['paper']
-    }
-  }
 });
