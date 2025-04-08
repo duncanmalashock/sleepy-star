@@ -1,121 +1,162 @@
-import { Point, Path, Group, Tool, Raster, PointText } from 'paper';
+import { Path } from 'paper';
 
-// !? could be imported from a globals module
-const colors = {
-  white: '#FFF',
-  black: '#000'
-}
+// Consider moving this to a shared constants or style module
+const styles = {
+  selectionRect: {
+    strokeColor: '#FFF',
+    dashArray: [1, 1],
+    blendMode: 'difference',
+  }
+};
 
-// Responsible for selecting and dragging game objects represented by rasters
+// Handles selection, dragging, and marquee selection of raster objects
 export class SelectionManager {
   constructor(imageManager, windowManager) {
-    // !? A Set, not an array
-    this.selectedObjects = new Set();
-    // Is the user dragging their mouse
-    // !? doesn't differentiate between dragging to select and dragging a selected object
-    this.dragging = false;
-    // Selection rectangle that may or not be active
-    this.selectionRect = null;
-    // Drag origin
-    this.selectionStart = null;
-    // Key-value mapping objects to points
-    this.dragOffsetMap = new Map();
-
-    // Dependencies
     this.imageManager = imageManager;
     this.windowManager = windowManager;
+
+    this.selectedObjects = new Set();
+    this.dragging = false;
+    this.isSelectionMode = false;
+
+    this.selectionRect = null;
+    this.selectionStart = null;
+
+    this.dragOffsetMap = new Map();
   }
 
-  isInsideSelectableWindow(point) {
-    // !? "selectable window" is an ambiguous term.
-    // a window in which a selection rectangle can be drawn?
-    // a window in which game objects can be selected?
+  // Called from main.js to handle mouseDown logic
+  handleMouseDown(event) {
+    if (!this._isPointInInteractiveArea(event.point)) return false;
+
+    const hit = this._hitTest(event.point);
+
+    if (hit) {
+      this._startDragging(hit, event);
+    } else {
+      this._startSelection(event);
+    }
+
+    return true;
+  }
+
+  // Called from main.js to handle dragging logic
+  handleMouseDrag(event) {
+    if (this.dragging) {
+      this._dragSelectedObjects(event);
+      return true;
+    }
+
+    if (this.isSelectionMode) {
+      this._updateSelectionRect(event);
+      return true;
+    }
+
+    return false;
+  }
+
+  // Called from main.js to handle mouseUp logic
+  handleMouseUp(event) {
+    if (this.isSelectionMode && this.selectionRect) {
+      this._finalizeSelection();
+    }
+
+    this.dragging = false;
+    this.isSelectionMode = false;
+
+    if (this.selectionRect) {
+      this.selectionRect.remove();
+      this.selectionRect = null;
+    }
+
+    return false;
+  }
+
+  // ---- Internal helpers ----
+
+  _isPointInInteractiveArea(point) {
+    // Clarified terminology: interactive areas are areas where objects can be selected or dragged
     return (
       this.windowManager.isPointInWindow(point, "Inventory") ||
-      this.windowManager.isPointInWindow(point, "Entrance") 
+      this.windowManager.isPointInWindow(point, "Entrance")
     );
   }
 
-  // Start dragging a raster object
-  startDragging(raster, event) {
-    // Drag if the object is already selected
+  _startDragging(raster, event) {
     if (!this.selectedObjects.has(raster)) {
       this.clearSelection();
-      this.selectRaster(raster);
+      this.selectedObjects.add(raster);
     }
-    // !? Assumes all objects are draggable
-    // Maybe this is okay when the try/result approach is in place
+
     this.dragging = true;
     this.dragOffsetMap.clear();
 
-    // Group dragging behavior in the case of multiple selected objects
     this.selectedObjects.forEach(obj => {
-      // !? what API does bringToFront belong to?
-      obj.bringToFront();
+      if (typeof obj.bringToFront === 'function') {
+        obj.bringToFront();
+      }
+
+      // Reorder to maintain z-index consistency in imageManager
       const index = this.imageManager.rasterObjects.indexOf(obj);
-      // If this object isn't the last in the array of rasterObjects
       if (index !== -1) {
-        // !? What's going on here?
         this.imageManager.rasterObjects.splice(index, 1);
         this.imageManager.rasterObjects.push(obj);
       }
-      // Update the map of drag offsets
+
       this.dragOffsetMap.set(obj, event.point.subtract(obj.position));
     });
   }
 
-  dragSelectedObjects(event) {
-    // !? Called by main instead of inside a handleMouseDrag
+  _dragSelectedObjects(event) {
     this.selectedObjects.forEach(obj => {
       const offset = this.dragOffsetMap.get(obj);
-      obj.position = event.point.subtract(offset);
+      if (offset) {
+        obj.position = event.point.subtract(offset);
+      }
     });
   }
 
-  // More accurately startSelectionRect
-  startSelection(event) {
-    // !? Clearing may not be necessary for multiple selection with shift-drag
+  _startSelection(event) {
     this.clearSelection();
+    this.isSelectionMode = true;
     this.selectionStart = event.point;
-    if (this.selectionRect) {
-      this.selectionRect.remove();
-    }
+
+    if (this.selectionRect) this.selectionRect.remove();
+
     this.selectionRect = new Path.Rectangle({
       from: this.selectionStart,
       to: this.selectionStart,
-      strokeColor: colors.white,
-      dashArray: [1, 1],
-      blendMode: 'difference'
+      ...styles.selectionRect
     });
   }
 
-  updateSelectionRect(event) {
-    if (this.selectionRect) {
-      this.selectionRect.remove();
-      // !? Styles are duplicated
-      this.selectionRect = new Path.Rectangle({
-        from: this.selectionStart,
-        to: event.point,
-        strokeColor: colors.white,
-        dashArray: [1, 1],
-        blendMode: 'difference'
-      });
-    }
+  _updateSelectionRect(event) {
+    if (!this.selectionStart) return;
+
+    if (this.selectionRect) this.selectionRect.remove();
+
+    this.selectionRect = new Path.Rectangle({
+      from: this.selectionStart,
+      to: event.point,
+      ...styles.selectionRect
+    });
   }
 
-  selectRaster(raster) {
-    this.selectedObjects.add(raster);
+  _finalizeSelection() {
+    const bounds = this.selectionRect.bounds;
+
+    this.imageManager.rasterObjects.forEach(raster => {
+      if (bounds.intersects(raster.bounds)) {
+        this.selectedObjects.add(raster);
+        this.imageManager.invertRaster(raster);
+      }
+    });
   }
 
-  clearSelection() {
-    this.selectedObjects.clear();
-  }
-
-  hitTest(point) {
-    // !? called by main instead of a handleMouseDown or handleMouseDrag function
+  _hitTest(point) {
+    // Could be enhanced later to test opacity in GIFs
     for (let i = this.imageManager.rasterObjects.length - 1; i >= 0; i--) {
       const raster = this.imageManager.rasterObjects[i];
-      // !? doesn't test for opacity of gif images
       if (raster.contains(point)) {
         return raster;
       }
@@ -123,18 +164,8 @@ export class SelectionManager {
     return null;
   }
 
-  stopDragging() {
-    // !? called by main instead of a handleMouseUp function
-    this.dragging = false;
-    if (this.selectionRect) {
-      this.selectionRect.remove();
-      this.selectionRect = null;
-    }
-  }
-
-  isDragging() {
-    // !? called by main instead of a handleMouseDown or handleMouseDrag function
-    return this.dragging;
+  // Public utility
+  clearSelection() {
+    this.selectedObjects.clear();
   }
 }
-

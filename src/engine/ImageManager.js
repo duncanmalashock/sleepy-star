@@ -1,76 +1,29 @@
-import { Point, Path, Group, Tool, Raster, PointText } from 'paper';
+import { Raster } from 'paper';
 
-// !? could be imported from a globals module
-const colors = {
-  white: '#FFF',
-  black: '#000'
-}
-
-// Responsible for storing, showing, and inverting raster images
 export class ImageManager {
   constructor() {
-    // !? SelectionManager uses this way more than ImageManager does
     this.rasterObjects = [];
+    this._originalImages = new WeakMap(); // Maps raster → original ImageData
   }
 
   loadImage(src, position) {
     const raster = new Raster({
       source: src,
-      position: position
+      position
     });
 
     raster.onLoad = () => {
       this.rasterObjects.push(raster);
+      this._originalImages.set(raster, raster.getImageData());
     };
 
     return raster;
   }
 
-  // This is awesome
-  // !? Game needs to prevent interactions to avoid image corruption during
-  // animations like these
-  dissolveInRaster(raster, duration = 0, batchSize = 100) {
-    const originalData = raster.getImageData();
-    const tempData = new ImageData(originalData.width, originalData.height);
-    const totalPixels = originalData.width * originalData.height;
-  
-    // Build list of pixel indices
-    const indices = Array.from({ length: totalPixels }, (_, i) => i);
-    
-    // Shuffle the indices
-    for (let i = indices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [indices[i], indices[j]] = [indices[j], indices[i]];
-    }
-    // Start fully transparent
-    raster.setImageData(tempData);
-    let revealed = 0;
-    function revealBatch() {
-      for (let i = 0; i < batchSize && revealed < totalPixels; i++, revealed++) {
-        const index = indices[revealed];
-        const px = index * 4;
-        tempData.data[px] = originalData.data[px];
-        tempData.data[px + 1] = originalData.data[px + 1];
-        tempData.data[px + 2] = originalData.data[px + 2];
-        tempData.data[px + 3] = originalData.data[px + 3];
-      }
-      raster.setImageData(tempData);
-      if (revealed < totalPixels) {
-        setTimeout(revealBatch, duration / (totalPixels / batchSize));
-      }
-    }
-    revealBatch();
-  }
-
-  // Invert the colors of the raster
-  invertRasterColors(raster) {
-    // !? unclear what _originalImage is
-    // a raster doesn't seem to store its non-inverted pixels, so we may
-    // get into a state where a raster is inverted when it shouldn't be
-    if (!raster._originalImage) {
-      raster._originalImage = raster.getImageData();
-    } else {
-      raster.setImageData(raster._originalImage);
+  invertRaster(raster) {
+    if (!this._originalImages.has(raster)) {
+      console.warn("No original image data found for inversion.");
+      return;
     }
 
     const imageData = raster.getImageData();
@@ -81,5 +34,53 @@ export class ImageManager {
     }
 
     raster.setImageData(imageData);
+  }
+
+  resetRaster(raster) {
+    const original = this._originalImages.get(raster);
+    if (original) {
+      raster.setImageData(original);
+    }
+  }
+
+  dissolveInRaster(raster, duration = 1000, batchSize = 100) {
+    const original = this._originalImages.get(raster) || raster.getImageData();
+    const tempData = new ImageData(original.width, original.height);
+    const totalPixels = original.width * original.height;
+
+    // Cache original if not already saved
+    if (!this._originalImages.has(raster)) {
+      this._originalImages.set(raster, original);
+    }
+
+    // Shuffle pixel indices
+    const indices = Array.from({ length: totalPixels }, (_, i) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+
+    // Start fully transparent
+    raster.setImageData(tempData);
+    let revealed = 0;
+
+    const revealBatch = () => {
+      for (let i = 0; i < batchSize && revealed < totalPixels; i++, revealed++) {
+        const index = indices[revealed];
+        const px = index * 4;
+        tempData.data[px] = original.data[px];
+        tempData.data[px + 1] = original.data[px + 1];
+        tempData.data[px + 2] = original.data[px + 2];
+        tempData.data[px + 3] = original.data[px + 3];
+      }
+
+      raster.setImageData(tempData);
+
+      if (revealed < totalPixels) {
+        setTimeout(revealBatch, duration / (totalPixels / batchSize));
+      }
+    };
+
+    revealBatch();
   }
 }
