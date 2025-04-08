@@ -37,7 +37,7 @@ export class WindowManager {
   createWindow(label, pos, size, { resizable = false, scrollable = false } = {}) {
     const group = new Group();
 
-    const titleBar = new Path.Rectangle(correctForSubPixels(pos), [size.width, styles.windowTitleBar.height]);
+    const titleBar = new Path.Rectangle(correctForSubPixels(pos), [size.width - 1, styles.windowTitleBar.height]);
     titleBar.fillColor = COLORS.WHITE;
     titleBar.strokeColor = COLORS.BLACK;
 
@@ -57,7 +57,7 @@ export class WindowManager {
 
     const body = new Path.Rectangle(
       correctForSubPixels(pos.add([0, styles.windowTitleBar.height])),
-      [size.width, size.height - styles.windowTitleBar.height]
+      [size.width - 1, size.height - styles.windowTitleBar.height - 1]
     );
     body.fillColor = COLORS.WHITE;
     body.strokeColor = COLORS.BLACK;
