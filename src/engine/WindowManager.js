@@ -8,12 +8,10 @@ const styles = {
     padding: 5,
   },
   button: {
-    height: 20,
+    height: 16,
     fontSize: 16,
-  },
-  shadow: {
-    left: 2,
-    top: 2,
+    topRowY: 5,
+    bottomRowY: 22,
   },
   correctionFactor: {
     x: 0.5,
@@ -48,12 +46,12 @@ export class WindowManager {
     return new Group([titleBar, labelText]);
   }
 
-  createWindow(label, pos, size, { resizable = false, scrollable = false, showTitleBar = true } = {}) {
+  createWindow(label, pos, size, { resizable = false, scrollable = false, showTitleBar = true, blackBg = false, shadowDepth = 1 } = {}) {
     const group = new Group();
     const titleBarHeight = showTitleBar ? styles.windowTitleBar.height : 0;
   
     const shadow = new Path.Rectangle(
-      pos.add([styles.shadow.left, styles.shadow.top]),
+      pos.add([shadowDepth, shadowDepth]),
       [size.width, size.height]
     );
     shadow.fillColor = COLORS.BLACK;
@@ -62,7 +60,7 @@ export class WindowManager {
     const bodySize = [size.width - 1, size.height - titleBarHeight - 1];
   
     const body = new Path.Rectangle(bodyPos, bodySize);
-    body.fillColor = COLORS.WHITE;
+    body.fillColor = blackBg ? COLORS.BLACK : COLORS.WHITE;
     body.strokeColor = COLORS.BLACK;
   
     const clipMask = new Path.Rectangle(body.bounds);
@@ -123,69 +121,69 @@ export class WindowManager {
   }
 
   createCommandBar() {
-    const pos = new Point(128, 24);
-    const contents = this.createWindow("Commands", pos, { width: 256, height: 40 }, { showTitleBar: false });
+    const pos = new Point(128, 22);
+    const contents = this.createWindow("Commands", pos, { width: 257, height: 44 }, { showTitleBar: false, blackBg: true, shadowDepth: 0 });
 
     const buttons = [
       {
         command: COMMANDS.EXAMINE,
         label: "Examine",
-        position: { x: 0, y: 0 },
-        width: 70
+        position: { x: 5, y: styles.button.topRowY },
+        width: 68
       },
       {
         command: COMMANDS.OPEN,
         label: "Open",
-        position: { x: 70, y: 0 },
+        position: { x: 74, y: styles.button.topRowY },
         width: 50
       },
       {
         command: COMMANDS.CLOSE,
         label: "Close",
-        position: { x: 120, y: 0 },
+        position: { x: 125, y: styles.button.topRowY },
         width: 50
       },
       {
         command: COMMANDS.SPEAK,
         label: "Speak",
-        position: { x: 170, y: 0 },
-        width: 50
+        position: { x: 176, y: styles.button.topRowY },
+        width: 75
       },
       {
         command: COMMANDS.OPERATE,
         label: "Operate",
-        position: { x: 0, y: 20 },
-        width: 70
+        position: { x: 5, y: styles.button.bottomRowY },
+        width: 68
       },
       {
         command: COMMANDS.GO,
         label: "Go",
-        position: { x: 70, y: 20 },
+        position: { x: 74, y: styles.button.bottomRowY },
         width: 50
       },
       {
         command: COMMANDS.HIT,
         label: "Hit",
-        position: { x: 120, y: 20 },
+        position: { x: 125, y: styles.button.bottomRowY },
         width: 50
       },
       {
         command: COMMANDS.CONSUME,
         label: "Consume",
-        position: { x: 170, y: 20 },
-        width: 70
+        position: { x: 176, y: styles.button.bottomRowY },
+        width: 75
       },
     ];
 
     buttons.forEach((buttonConfig) => {
-      const btnPos = new Point(buttonConfig.position.x, buttonConfig.position.y).add(pos)
+      const btnPos = correctForSubPixels(new Point(buttonConfig.position.x, buttonConfig.position.y).add(pos))
       const btn = new Path.Rectangle(
         btnPos, 
         [buttonConfig.width, styles.button.height]);
       btn.fillColor = COLORS.WHITE;
       btn.strokeColor = COLORS.BLACK;
       const txt = new PointText({
-        point: btnPos.add([5, 14]),
+        point: btnPos.add([5, 12]),
         content: buttonConfig.label,
         fillColor: COLORS.BLACK,
         fontFamily: 'Chicago',
@@ -203,11 +201,11 @@ export class WindowManager {
   }
 
   createExitsWindow() {
-    return this.createWindow("Exits", new Point(404, 90), { width: 80, height: 100 });
+    return this.createWindow("Exits", new Point(404, 88), { width: 80, height: 96 }, { shadowDepth: 0 });
   }
 
   createSelfWindow() {
-    return this.createWindow("Self", new Point(404, 24), { width: 80, height: 42 }, {showTitleBar: false});
+    return this.createWindow("Self", new Point(404, 22), { width: 79, height: 44 }, {showTitleBar: false, shadowDepth: 2});
   }
 
   // Input handling

@@ -1,5 +1,13 @@
 export const gameObjects = [
   {
+    id: 'obj:entrance',
+    name: 'entrance',
+    src: 'entrance.gif',
+    position: { x: 0, y: 0 },
+    movable: false,
+    location: 'entrance'
+  },
+  {
     id: 'obj:key',
     name: 'key',
     src: 'key.gif',
