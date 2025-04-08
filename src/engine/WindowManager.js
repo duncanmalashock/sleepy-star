@@ -34,10 +34,8 @@ export class WindowManager {
     this.dragOffset = null;
   }
 
-  createWindow(label, pos, size, { resizable = false, scrollable = false } = {}) {
-    const group = new Group();
-
-    const titleBar = new Path.Rectangle(correctForSubPixels(pos), [size.width - 1, styles.windowTitleBar.height]);
+  createTitleBar(label, pos, width) {
+    const titleBar = new Path.Rectangle(correctForSubPixels(pos), [width - 1, styles.windowTitleBar.height]);
     titleBar.fillColor = COLORS.WHITE;
     titleBar.strokeColor = COLORS.BLACK;
 
@@ -49,26 +47,33 @@ export class WindowManager {
       fontSize: styles.windowTitleBar.fontSize,
     });
 
+    return new Group([titleBar, labelText]);
+  }
+
+  createWindow(label, pos, size, { resizable = false, scrollable = false, showTitleBar = true } = {}) {
+    const group = new Group();
+    const titleBarHeight = showTitleBar ? styles.windowTitleBar.height : 0;
+  
     const shadow = new Path.Rectangle(
       pos.add([styles.shadow.left, styles.shadow.top]),
-        [size.width, size.height]
-      );
-    shadow.fillColor = COLORS.BLACK;
-
-    const body = new Path.Rectangle(
-      correctForSubPixels(pos.add([0, styles.windowTitleBar.height])),
-      [size.width - 1, size.height - styles.windowTitleBar.height - 1]
+      [size.width, size.height]
     );
+    shadow.fillColor = COLORS.BLACK;
+  
+    const bodyPos = correctForSubPixels(pos.add([0, titleBarHeight]));
+    const bodySize = [size.width - 1, size.height - titleBarHeight - 1];
+  
+    const body = new Path.Rectangle(bodyPos, bodySize);
     body.fillColor = COLORS.WHITE;
     body.strokeColor = COLORS.BLACK;
-
+  
     const clipMask = new Path.Rectangle(body.bounds);
     clipMask.clipMask = true;
-
+  
     const contentsGroup = new Group();
     contentsGroup.clipped = true;
     contentsGroup.addChild(clipMask);
-
+  
     if (scrollable) {
       contentsGroup.onMouseDrag = (event) => {
         contentsGroup.children.forEach(child => {
@@ -78,24 +83,32 @@ export class WindowManager {
         });
       };
     }
-
-    group.addChildren([shadow, body, contentsGroup, titleBar, labelText]);
-
-    // Store with full metadata
+  
+    group.addChildren([shadow, body, contentsGroup]);
+  
+    let titleBarGroup = null;
+    if (showTitleBar) {
+      titleBarGroup = this.createTitleBar(label, pos, size.width);
+      group.addChild(titleBarGroup); // Add *last* so it's on top
+    }
+  
     const windowData = {
       label,
       group,
-      titleBar,
       body,
       contentsGroup,
       resizable,
       scrollable,
+      showTitleBar,
       pos,
-      size,
+      size
     };
-
+  
+    if (showTitleBar) {
+      windowData.titleBar = titleBarGroup.children[0]; // the actual rectangle
+    }
+  
     this.windows.set(label, windowData);
-
     return contentsGroup;
   }
 
@@ -112,7 +125,7 @@ export class WindowManager {
   }
 
   createCommandBar() {
-    const contents = this.createWindow("Commands", new Point(128, 24), { width: 256, height: 40 });
+    const contents = this.createWindow("Commands", new Point(128, 24), { width: 256, height: 40 }, { showTitleBar: false });
 
     const buttons = ["Examine", "Open", "Close", "Speak", "Operate", "Go", "Hit", "Consume"];
 
@@ -144,14 +157,14 @@ export class WindowManager {
   }
 
   createSelfWindow() {
-    return this.createWindow("Self", new Point(404, 24), { width: 80, height: 42 });
+    return this.createWindow("Self", new Point(404, 24), { width: 80, height: 42 }, {showTitleBar: false});
   }
 
   // Input handling
 
   handleMouseDown(event) {
     for (let win of this.windows.values()) {
-      if (win.titleBar.contains(event.point)) {
+      if (win.showTitleBar && win.titleBar.contains(event.point)) {
         this.activeDrag = win;
         this.dragOffset = event.point.subtract(win.group.position);
         return true;
