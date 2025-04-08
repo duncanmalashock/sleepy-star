@@ -13,6 +13,18 @@ const styles = {
     spacing: 64,
     fontSize: 16,
   },
+  shadow: {
+    left: 2,
+    top: 2,
+  },
+  correctionFactor: {
+    x: 0.5,
+    y: 0.5
+  }
+};
+
+const correctForSubPixels = function(pos) {
+  return pos.add([styles.correctionFactor.x, styles.correctionFactor.y]);
 };
 
 export class WindowManager {
@@ -25,7 +37,7 @@ export class WindowManager {
   createWindow(label, pos, size, { resizable = false, scrollable = false } = {}) {
     const group = new Group();
 
-    const titleBar = new Path.Rectangle(pos.add([0.5, 0.5]), [size.width, styles.windowTitleBar.height]);
+    const titleBar = new Path.Rectangle(correctForSubPixels(pos), [size.width, styles.windowTitleBar.height]);
     titleBar.fillColor = COLORS.WHITE;
     titleBar.strokeColor = COLORS.BLACK;
 
@@ -37,11 +49,14 @@ export class WindowManager {
       fontSize: styles.windowTitleBar.fontSize,
     });
 
-    const shadow = new Path.Rectangle(pos.add([2, 2]), [size.width, size.height]);
+    const shadow = new Path.Rectangle(
+      pos.add([styles.shadow.left, styles.shadow.top]),
+        [size.width, size.height]
+      );
     shadow.fillColor = COLORS.BLACK;
 
     const body = new Path.Rectangle(
-      pos.add([0.5, styles.windowTitleBar.height + 0.5]),
+      correctForSubPixels(pos.add([0, styles.windowTitleBar.height])),
       [size.width, size.height - styles.windowTitleBar.height]
     );
     body.fillColor = COLORS.WHITE;

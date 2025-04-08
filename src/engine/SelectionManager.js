@@ -1,9 +1,10 @@
 import { Path } from 'paper';
+import { COLORS } from './constants';
 
 // Consider moving this to a shared constants or style module
 const styles = {
   selectionRect: {
-    strokeColor: '#FFF',
+    strokeColor: COLORS.WHITE,
     dashArray: [1, 1],
     blendMode: 'difference',
   }
