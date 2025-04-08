@@ -64,7 +64,7 @@ export class WindowManager {
     body.strokeColor = COLORS.BLACK;
   
     const clipMask = new Path.Rectangle(body.bounds);
-    clipMask.clipMask = false;
+    clipMask.clipMask = true;
   
     const contentsGroup = new Group();
     contentsGroup.clipped = true;
