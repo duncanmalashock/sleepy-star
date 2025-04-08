@@ -1,5 +1,5 @@
 import { Point, Path, Group, Raster, PointText } from 'paper';
-import { COLORS, LOCATIONS } from './constants';
+import { COLORS, LOCATIONS, COMMANDS } from './constants';
 
 const styles = {
   windowTitleBar: {
@@ -8,9 +8,7 @@ const styles = {
     padding: 5,
   },
   button: {
-    width: 50,
     height: 20,
-    spacing: 64,
     fontSize: 16,
   },
   shadow: {
@@ -68,7 +66,7 @@ export class WindowManager {
     body.strokeColor = COLORS.BLACK;
   
     const clipMask = new Path.Rectangle(body.bounds);
-    clipMask.clipMask = true;
+    clipMask.clipMask = false;
   
     const contentsGroup = new Group();
     contentsGroup.clipped = true;
@@ -125,18 +123,70 @@ export class WindowManager {
   }
 
   createCommandBar() {
-    const contents = this.createWindow("Commands", new Point(128, 24), { width: 256, height: 40 }, { showTitleBar: false });
+    const pos = new Point(128, 24);
+    const contents = this.createWindow("Commands", pos, { width: 256, height: 40 }, { showTitleBar: false });
 
-    const buttons = ["Examine", "Open", "Close", "Speak", "Operate", "Go", "Hit", "Consume"];
+    const buttons = [
+      {
+        command: COMMANDS.EXAMINE,
+        label: "Examine",
+        position: { x: 0, y: 0 },
+        width: 70
+      },
+      {
+        command: COMMANDS.OPEN,
+        label: "Open",
+        position: { x: 70, y: 0 },
+        width: 50
+      },
+      {
+        command: COMMANDS.CLOSE,
+        label: "Close",
+        position: { x: 120, y: 0 },
+        width: 50
+      },
+      {
+        command: COMMANDS.SPEAK,
+        label: "Speak",
+        position: { x: 170, y: 0 },
+        width: 50
+      },
+      {
+        command: COMMANDS.OPERATE,
+        label: "Operate",
+        position: { x: 0, y: 20 },
+        width: 70
+      },
+      {
+        command: COMMANDS.GO,
+        label: "Go",
+        position: { x: 70, y: 20 },
+        width: 50
+      },
+      {
+        command: COMMANDS.HIT,
+        label: "Hit",
+        position: { x: 120, y: 20 },
+        width: 50
+      },
+      {
+        command: COMMANDS.CONSUME,
+        label: "Consume",
+        position: { x: 170, y: 20 },
+        width: 70
+      },
+    ];
 
-    buttons.forEach((label, i) => {
-      const btnX = 129 + i * styles.button.spacing;
-      const btn = new Path.Rectangle(new Point(btnX, 42), [styles.button.width, styles.button.height]);
+    buttons.forEach((buttonConfig) => {
+      const btnPos = new Point(buttonConfig.position.x, buttonConfig.position.y).add(pos)
+      const btn = new Path.Rectangle(
+        btnPos, 
+        [buttonConfig.width, styles.button.height]);
       btn.fillColor = COLORS.WHITE;
-
+      btn.strokeColor = COLORS.BLACK;
       const txt = new PointText({
-        point: btn.position.add([-15, 5]),
-        content: label,
+        point: btnPos.add([5, 14]),
+        content: buttonConfig.label,
         fillColor: COLORS.BLACK,
         fontFamily: 'Chicago',
         fontSize: styles.button.fontSize,
