@@ -1,12 +1,15 @@
 import { Point, Path, Group, Tool, Raster, PointText } from 'paper';
 
+// !? could be imported from a globals module
 const colors = {
   white: '#FFF',
   black: '#000'
 }
 
+// Responsible for storing, showing, and inverting raster images
 export class ImageManager {
   constructor() {
+    // !? SelectionManager uses this way more than ImageManager does
     this.rasterObjects = [];
   }
 
@@ -18,13 +21,14 @@ export class ImageManager {
 
     raster.onLoad = () => {
       this.rasterObjects.push(raster);
-      // this.dissolveInRaster(raster); // <- Trigger dissolve effect here
-      // console.log(`Loaded image at ${position}`);
     };
 
     return raster;
   }
 
+  // This is awesome
+  // !? Game needs to prevent interactions to avoid image corruption during
+  // animations like these
   dissolveInRaster(raster, duration = 0, batchSize = 100) {
     const originalData = raster.getImageData();
     const tempData = new ImageData(originalData.width, originalData.height);
@@ -38,13 +42,13 @@ export class ImageManager {
       const j = Math.floor(Math.random() * (i + 1));
       [indices[i], indices[j]] = [indices[j], indices[i]];
     }
-    raster.setImageData(tempData); // Start fully transparent
+    // Start fully transparent
+    raster.setImageData(tempData);
     let revealed = 0;
     function revealBatch() {
       for (let i = 0; i < batchSize && revealed < totalPixels; i++, revealed++) {
         const index = indices[revealed];
         const px = index * 4;
-  
         tempData.data[px] = originalData.data[px];
         tempData.data[px + 1] = originalData.data[px + 1];
         tempData.data[px + 2] = originalData.data[px + 2];
@@ -60,6 +64,9 @@ export class ImageManager {
 
   // Invert the colors of the raster
   invertRasterColors(raster) {
+    // !? unclear what _originalImage is
+    // a raster doesn't seem to store its non-inverted pixels, so we may
+    // get into a state where a raster is inverted when it shouldn't be
     if (!raster._originalImage) {
       raster._originalImage = raster.getImageData();
     } else {
@@ -74,6 +81,5 @@ export class ImageManager {
     }
 
     raster.setImageData(imageData);
-    console.log(`Inverted colors for raster at ${raster.position}`);
   }
 }
