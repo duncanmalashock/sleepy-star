@@ -14,7 +14,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 const LOCATIONS =
   {
-    ENTRANCE: 'entrance',
+    ENTRANCE: 'Temple ruins',
     INVENTORY: 'inventory', 
     HIDDEN: 'hidden',
   };

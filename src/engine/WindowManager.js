@@ -13,6 +13,10 @@ const styles = {
     topRowY: 5,
     bottomRowY: 22,
   },
+  exit: {
+    width: 9,
+    height: 9,
+  },
   correctionFactor: {
     x: 0.5,
     y: 0.5
@@ -64,7 +68,7 @@ export class WindowManager {
     body.strokeColor = COLORS.BLACK;
   
     const clipMask = new Path.Rectangle(body.bounds);
-    clipMask.clipMask = true;
+    clipMask.clipMask = false;
   
     const contentsGroup = new Group();
     contentsGroup.clipped = true;
@@ -109,20 +113,20 @@ export class WindowManager {
   }
 
   createRoomWindow(location, gameObjectManager) {
-    const contents = this.createWindow(location, new Point(128, 66), { width: 256, height: 188 });
+    const contents = this.createWindow(location, new Point(128, 62), { width: 258, height: 192 });
     gameObjectManager.placeObjects(contents, location);
     return contents;
   }
 
   createInventoryWindow(gameObjectManager) {
-    const contents = this.createWindow("Inventory", new Point(2, 24), { width: 120, height: 230 }, { resizable: true, scrollable: true });
+    const contents = this.createWindow("inventory", new Point(1, 22), { width: 123, height: 232 }, { resizable: true, scrollable: true });
     gameObjectManager.placeObjects(contents, LOCATIONS.INVENTORY);
     return contents;
   }
 
   createCommandBar() {
-    const pos = new Point(128, 22);
-    const contents = this.createWindow("Commands", pos, { width: 257, height: 44 }, { showTitleBar: false, blackBg: true, shadowDepth: 0 });
+    const pos = new Point(128, 18);
+    const contents = this.createWindow("Commands", pos, { width: 259, height: 44 }, { showTitleBar: false, blackBg: true, shadowDepth: 0 });
 
     const buttons = [
       {
@@ -147,7 +151,7 @@ export class WindowManager {
         command: COMMANDS.SPEAK,
         label: "Speak",
         position: { x: 176, y: styles.button.topRowY },
-        width: 75
+        width: 77
       },
       {
         command: COMMANDS.OPERATE,
@@ -171,7 +175,7 @@ export class WindowManager {
         command: COMMANDS.CONSUME,
         label: "Consume",
         position: { x: 176, y: styles.button.bottomRowY },
-        width: 75
+        width: 77
       },
     ];
 
@@ -197,15 +201,53 @@ export class WindowManager {
   }
 
   createNarrationWindow() {
-    return this.createWindow("Untitled", new Point(2, 256), { width: 507, height: 83 }, { resizable: true, scrollable: true });
+    const pos = new Point(1, 256);
+
+    const lines = [
+      "Tear— / tear us an altar, / tug at the cliff-boulders, / pile them with the",
+      "rough stones— / we no longer sleep in the wind, / propitiate us.",
+    ]
+    
+    const contents = this.createWindow("The Wind Sleepers", pos, { width: 509, height: 84 }, { resizable: true, scrollable: true });
+
+    lines.forEach(function (line, i) {
+      const theText = new PointText({
+        point: pos.add([5, 32 + i * 16]),
+        content: line,
+        fillColor: COLORS.BLACK,
+        fontFamily: 'Chicago',
+        fontSize: styles.windowTitleBar.fontSize,
+      });
+      contents.addChild(theText);
+    });
+    
+    return contents;
   }
 
   createExitsWindow() {
-    return this.createWindow("Exits", new Point(404, 88), { width: 80, height: 96 }, { shadowDepth: 0 });
+    const pos = new Point(404, 88)
+    const exitsWindow = this.createWindow("Exits", pos, { width: 80, height: 96 }, { shadowDepth: 0 });
+
+    const exitPos = new Point(35,80)
+    const exit = new Path.Rectangle(correctForSubPixels(pos.add(exitPos)), [styles.exit.width, styles.exit.height]);
+    exit.fillColor = COLORS.WHITE;
+    exit.strokeColor = COLORS.BLACK;
+
+    exitsWindow.addChild(exit);
+
+    return exitsWindow;
   }
 
   createSelfWindow() {
-    return this.createWindow("Self", new Point(404, 22), { width: 79, height: 44 }, {showTitleBar: false, shadowDepth: 2});
+    const myPos = new Point(404, 22);
+    const selfWindow = this.createWindow("Self", myPos, { width: 79, height: 44 }, {showTitleBar: false, shadowDepth: 2});
+
+    const raster = new Raster({
+      source: '/self.gif', position: myPos.add([39.5,22])
+    });
+
+    selfWindow.addChild(raster);
+    return selfWindow;
   }
 
   // Input handling

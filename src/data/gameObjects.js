@@ -1,11 +1,11 @@
 export const gameObjects = [
   {
     id: 'obj:entrance',
-    name: 'entrance',
-    src: 'entrance.gif',
+    name: 'Ruins',
+    src: 'ruins.gif',
     position: { x: 0, y: 0 },
     movable: false,
-    location: 'entrance'
+    location: 'Temple ruins'
   },
   {
     id: 'obj:key',
@@ -13,13 +13,13 @@ export const gameObjects = [
     src: 'key.gif',
     position: { x: -70, y: 30 },
     movable: true,
-    location: 'entrance'
+    location: 'hidden'
   },
   {
-    id: 'obj:torch',
-    name: 'torch',
-    src: 'torch.gif',
-    position: { x: -32, y: -48 },
+    id: 'obj:candle',
+    name: 'candle',
+    src: 'candle.gif',
+    position: { x: -40, y: -70 },
     movable: true,
     location: 'inventory'
   }
