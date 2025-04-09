@@ -78,7 +78,7 @@ export class SelectionManager {
   _isPointInInteractiveArea(point) {
     // Clarified terminology: interactive areas are areas where objects can be selected or dragged
     return (
-      this.windowManager.isPointInWindow(point, "Inventory") ||
+      this.windowManager.isPointInWindow(point, "inventory") ||
       this.windowManager.isPointInWindow(point, "Entrance")
     );
   }

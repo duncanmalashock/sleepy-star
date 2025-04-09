@@ -225,7 +225,7 @@ export class WindowManager {
   }
 
   createExitsWindow() {
-    const pos = new Point(404, 88)
+    const pos = new Point(404, 80)
     const exitsWindow = this.createWindow("Exits", pos, { width: 80, height: 96 }, { shadowDepth: 0 });
 
     const exitPos = new Point(35,80)
@@ -239,11 +239,11 @@ export class WindowManager {
   }
 
   createSelfWindow() {
-    const myPos = new Point(404, 22);
-    const selfWindow = this.createWindow("Self", myPos, { width: 79, height: 44 }, {showTitleBar: false, shadowDepth: 2});
+    const myPos = new Point(404, 20);
+    const selfWindow = this.createWindow("Self", myPos, { width: 79, height: 43 }, {showTitleBar: false, shadowDepth: 2});
 
     const raster = new Raster({
-      source: '/self.gif', position: myPos.add([39.5,22])
+      source: '/self.gif', position: myPos.add([39.5,21.5])
     });
 
     selfWindow.addChild(raster);
